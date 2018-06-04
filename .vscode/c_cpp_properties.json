@@ -1,0 +1,45 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "clang-x64",
+            "includePath": [
+                "${workspaceFolder}/3rdparty/include",
+                "${workspaceFolder}/../../../libs/openFrameworks",
+                "${workspaceFolder}/../../../libs/openFrameworks/3d",
+                "${workspaceFolder}/../../../libs/openFrameworks/app",
+                "${workspaceFolder}/../../../libs/openFrameworks/communication",
+                "${workspaceFolder}/../../../libs/openFrameworks/events",
+                "${workspaceFolder}/../../../libs/openFrameworks/gl",
+                "${workspaceFolder}/../../../libs/openFrameworks/graphics",
+                "${workspaceFolder}/../../../libs/openFrameworks/math",
+                "${workspaceFolder}/../../../libs/openFrameworks/sound",
+                "${workspaceFolder}/../../../libs/openFrameworks/types",
+                "${workspaceFolder}/../../../libs/openFrameworks/utils",
+                "${workspaceFolder}/../../../libs/openFrameworks/video",
+                "${workspaceFolder}/../../../libs/boost/include",
+                "${workspaceFolder}/../../../libs/fmodex/include",
+                "${workspaceFolder}/../../../libs/FreeImage/include",
+                "${workspaceFolder}/../../../libs/freetype/include",
+                "${workspaceFolder}/../../../libs/glm/include",
+                "${workspaceFolder}/../../../libs/json/include",
+                "${workspaceFolder}/../../../libs/kiss/include",
+                "${workspaceFolder}/../../../libs/pugixml/include",
+                "${workspaceFolder}/../../../libs/tess2/include",
+                "${workspaceFolder}/../../../libs/uriparser/include",
+                "${workspaceFolder}/../../../libs/utf8/include"
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "${workspaceFolder}",
+                    "${workspaceFolder}/../../../libs/"
+                ],
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}
