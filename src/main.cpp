@@ -16,7 +16,8 @@ int main(int argc, char* argv[]){
 	options
 		.allow_unrecognised_options()
 		.add_options()
-		("c, config", "Config", cxxopts::value<std::string>(), "FILE")
+		("c, config", "Config", cxxopts::value<std::string>())
+		("m, morphology", "Morphology", cxxopts::value<std::string>())
 		("help", "Print help");
 
 	auto result = options.parse(argc, argv);

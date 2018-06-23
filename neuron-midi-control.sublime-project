@@ -1,0 +1,105 @@
+{
+    // #########################################################################
+    // USAGE
+    // - these project settings are only found if you use:
+    //   menu bar -> Project -> Open Project -> select myproject.sublime-project
+
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+    "settings":
+    {
+        // #####################################################################
+        // EasyClangComplete Settings
+
+        // use "ecc_<setting>" or "easy_clang_complete_<setting>" to override
+        // any "<setting>" from the plugin preferences project-wide.
+  
+        // override "use_libclang" setting in this project.
+        "ecc_use_libclang": true,
+        // override "verbose" setting in this project.
+        "easy_clang_complete_verbose": true,
+        // override "flags_sources" setting in this project.
+        // "ecc_flags_sources": [
+        //     // cmake entry
+        //     {
+        //       "file": "CMakeLists.txt",
+        //       "flags": ["-DCMAKE_BUILD_TYPE=Release", "-D XXXX=ON"],
+        //       "prefix_paths": [ "/opt/ros/indigo",
+        //                         "~/Code/catkin_ws/devel",
+        //                         "$project_base_path/catkin_ws/devel" ]
+        //     }
+        //     // Flags from file:
+        //     // { "file": ".clang_complete" },
+        // ],
+          // Flags specified here (see EasyClangComplete settings for defaults):
+        "ecc_common_flags": [
+            "-I$project_base_path/src", // in defaults
+            "-I$project_base_path/3rdparty/include",
+            "-I$project_base_path/../../../libs/openFrameworks",
+            "-I$project_base_path/../../../libs/openFrameworks/3d",
+            "-I$project_base_path/../../../libs/openFrameworks/app",
+            "-I$project_base_path/../../../libs/openFrameworks/communication",
+            "-I$project_base_path/../../../libs/openFrameworks/events",
+            "-I$project_base_path/../../../libs/openFrameworks/gl",
+            "-I$project_base_path/../../../libs/openFrameworks/graphics",
+            "-I$project_base_path/../../../libs/openFrameworks/math",
+            "-I$project_base_path/../../../libs/openFrameworks/sound",
+            "-I$project_base_path/../../../libs/openFrameworks/types",
+            "-I$project_base_path/../../../libs/openFrameworks/utils",
+            "-I$project_base_path/../../../libs/openFrameworks/video",
+            "-I$project_base_path/../../../libs/boost/include",
+            "-I$project_base_path/../../../libs/fmodex/include",
+            "-I$project_base_path/../../../libs/FreeImage/include",
+            "-I$project_base_path/../../../libs/freetype/include",
+            "-I$project_base_path/../../../libs/glm/include",
+            "-I$project_base_path/../../../libs/json/include",
+            "-I$project_base_path/../../../libs/kiss/include",
+            "-I$project_base_path/../../../libs/pugixml/include",
+            "-I$project_base_path/../../../libs/tess2/include",
+            "-I$project_base_path/../../../libs/uriparser/include",
+            "-I$project_base_path/../../../libs/utf8/include",
+            "-I$project_base_path/../../../addons/ofxMidi/src"
+        ]
+    },
+    // #########################################################################
+    // Sublimelinter Settings
+    "SublimeLinter": {
+        "linters": {
+            "clang": {
+                "extra_flags": "-std=c++11", // "-Wall -I${project_path}/src",
+                "include_dirs": [
+                    "${project_path}/src",
+                    "${project_path}/3rdparty/include",
+                    "${project_path}/../../../libs/openFrameworks",
+                    "${project_path}/../../../libs/openFrameworks/3d",
+                    "${project_path}/../../../libs/openFrameworks/app",
+                    "${project_path}/../../../libs/openFrameworks/communication",
+                    "${project_path}/../../../libs/openFrameworks/events",
+                    "${project_path}/../../../libs/openFrameworks/gl",
+                    "${project_path}/../../../libs/openFrameworks/graphics",
+                    "${project_path}/../../../libs/openFrameworks/math",
+                    "${project_path}/../../../libs/openFrameworks/sound",
+                    "${project_path}/../../../libs/openFrameworks/types",
+                    "${project_path}/../../../libs/openFrameworks/utils",
+                    "${project_path}/../../../libs/openFrameworks/video",
+                    "${project_path}/../../../libs/boost/include",
+                    "${project_path}/../../../libs/fmodex/include",
+                    "${project_path}/../../../libs/FreeImage/include",
+                    "${project_path}/../../../libs/freetype/include",
+                    "${project_path}/../../../libs/glm/include",
+                    "${project_path}/../../../libs/json/include",
+                    "${project_path}/../../../libs/kiss/include",
+                    "${project_path}/../../../libs/pugixml/include",
+                    "${project_path}/../../../libs/tess2/include",
+                    "${project_path}/../../../libs/uriparser/include",
+                    "${project_path}/../../../libs/utf8/include",
+                    "${project_path}/../../../addons/ofxMidi/src"
+                ]
+            }
+        }
+    }
+}
