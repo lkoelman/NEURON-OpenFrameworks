@@ -1,0 +1,6 @@
+* Todo List
+
+** TODO Limit rate of NEURON integration/simulation
+
+NEURON simulation cannot be too fast for user to interact meaningfully with the cell.
+A good example for controlling the rate can be found [https://github.com/bcumming/nbench/blob/master/benchmarks/bench_cell/neuron/bench.mod][here]
