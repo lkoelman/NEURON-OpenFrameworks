@@ -6,3 +6,11 @@ NEURON simulation cannot be too fast for user to interact meaningfully with the 
 A good example for controlling the rate can be found [[https://github.com/bcumming/nbench/blob/master/benchmarks/bench_cell/neuron/bench.mod][here]]
 
 Make the integration rate variable controllable using NEURON-sockets so user can speed up & slow down simulatin in Conductor GUI.
+
+** TODO Add 3D morphology renderer
+
+No need to do it low-level in GL shading language. Can use OpenFrameworks 3D primitives and emulate implementation in Three.js from popular morphology viewers like [[https://github.com/JaneliaSciComp/SharkViewer/blob/master/js/shark_viewer.js][Shark Viewer]] and [[https://github.com/rbakker/HBP-morphology-viewer/blob/master/js/morphology_viewer.js][HBP Morphology Viewer]].
+
+** TODO Visualize signals on 3D morphology
+
+Use appropriate effects like surface color/texture changes or particle.
