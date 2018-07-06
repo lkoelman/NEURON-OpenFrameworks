@@ -3,10 +3,21 @@
 - Make sure the project root folder is three levels deep in the openframeworks
   root folder, e.g. `openframeworks/apps/myApps/NeuronMIDIApp`
 
-- checkout the [ofxMidi addon](https://github.com/danomatika/ofxMidi) 
+- checkout the [ofxMidi addon](https://github.com/danomatika/ofxMidi)
   in `openframeworks/addons/ofxMidi`
     + check the project page and issues section to make sure it's updated
       for the OpenFrameworks version you are using
+    + if not: checkout forks section
+
+- install ZMQ and link header files
+
+``` sh
+sudo [apt/dnf] install cppzmq-devel
+ln -s /usr/include/zmq.h 3rdparty/include
+ln -s /usr/include/zmq.hpp 3rdparty/include
+ln -s /usr/include/zmq_utils.h 3rdparty/include
+```
+    + change `config.cmake` to point to correct zmq library
 
 - build the project
 

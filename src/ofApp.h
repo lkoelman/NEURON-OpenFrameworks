@@ -70,6 +70,13 @@ class ofApp : public ofBaseApp, public ofxMidiListener
 };
 
 
+typedef struct {
+    double gid;
+    double t;
+    double v;
+} sample_t;
+
+
 // A graphed variable. 
 // Its responsibilities are data storage for the incoming signal samples
 // and storing plotting options.

@@ -1,5 +1,6 @@
 #include "ofApp.h"
 #include "cpptoml.h"
+#include <cstring> // memcpy, ...
 
 
 void ofApp::setup()
@@ -22,7 +23,7 @@ void ofApp::setup()
     int port = opt_port ? *opt_port : 8889;
 
 
-    // TODO: setup the socket
+    // setup the socket
     this->_setup_socket(protocol, host, port);
 
     // =========================================================================
@@ -50,14 +51,14 @@ void ofApp::setup()
         // don't ignore sysex, timing, & active sense messages,
         // these are ignored by default
         midiIn.ignoreTypes(false, false, false);
-        
+
         // add ofApp as a listener
         midiIn.addListener(this);
-        
+
         // print received messages to the console
         midiIn.setVerbose(true);
     }
-	
+
 	// =========================================================================
     // Create graphed variables
 
@@ -83,14 +84,14 @@ void ofApp::setup()
 
 /**
  * Update application state.
- * 
+ *
  * DOCUMENTATION
  * -------------
- * 
+ *
  * Update and draw are called in an infinite loop one after another in that order,
  * until we finish the application.
  *
- * Update is meant to be used for updating the state of our application, 
+ * Update is meant to be used for updating the state of our application,
  * do any calculations we need to do and update other objects like video players,
  * grabbers, or any computer vision analysis we might be doing.
  * In draw() we only draw to the screen.
@@ -109,22 +110,47 @@ void ofApp::update()
     // Parse data into workable types
     // See NEURON-sockets/ZmqOutputVars.mod: we got sequence of triples
     // (float, float, float) all concatenated into arbitrary size message.
-    double t, v, gid;
-    std::istringstream iss(static_cast<char*>(update.data()));
 
-    // Read stream of samples and append to variable sampled if it is being graphed
-    // TODO: check that this is not parsing strings to floats, if so find a
-    //       float-stream object to use instead
-    while (iss) {
-        iss >> gid >> t >> v;
-        unsigned int iid = (unsigned int) gid;
+    // Method A using memcpy:
+    size_t sample_size = sizeof(sample_t);
+    size_t msg_size = update.size();
+    void* data_addr = update.data();
+    sample_t* sample;
+
+    size_t bytes_processed = 0;
+    unsigned int i_msg = 0;
+    while (bytes_processed < msg_size) {
+        // memcpy(&sample, data_addr + (i_msg * sample_size), sample_size);
+        sample = (sample_t*) data_addr + (i_msg * sample_size);
+        i_msg++;
+        bytes_processed += sample_size;
+
         // Look up the variable in map by identifier and append sample
-        if (this->variables.count(iid) > 0) {
-            this->variables[iid]->samples->push_back(ofPoint(t, v));
+        auto gid = (unsigned int) sample->gid;
+        if (this->variables.count(gid) > 0) {
+            this->variables[gid]->samples->push_back(ofPoint(sample->t, sample->v));
         }
     }
-    std::cout << "Received (gid, t, v): " << gid << ", " << t << ", " << v;
-    
+
+    // Method B using streams
+    // double t, v, gid;
+    // std::istringstream iss(static_cast<char*>(update.data()));
+
+    // Read stream of samples and append to variable sampled if it is being graphed
+    // NOTE: This is parsing strings to floats, if so find a
+    //       float-stream object to use instead
+    // while (iss) {
+    //     iss >> gid >> t >> v;
+    //     unsigned int iid = (unsigned int) gid;
+    //     // Look up the variable in map by identifier and append sample
+    //     if (this->variables.count(iid) > 0) {
+    //         this->variables[iid]->samples->push_back(ofPoint(t, v));
+    //     }
+    // }
+    std::cout << "Received (gid, t, v): " 
+              << sample->gid << ", "
+              << sample->t << ", " << sample->v;
+
     // TODO: Pop values that are outside of the variable's plotting range
 }
 
@@ -132,9 +158,12 @@ void ofApp::update()
 //==============================================================================
 // Plotting Signals
 
+/**
+ * Draw to the screen (called after update()).
+ */
 void ofApp::draw()
 {
-    //TODO: fix this method,
+    //TODO: implement App::draw() method,
 
     // Draw all our graphed lines
     for (auto const& id_and_var: variables)
@@ -147,7 +176,7 @@ void ofApp::draw()
         sample_to_screen(*var, last_pt, last_xy);
 
         auto it = ++var->samples->begin();
-        for (; it != var->samples->end(); ++it)
+        while (it != var->samples->end())
         {
             // Map sample point to screen position based on axes origin
             auto sample = *it;
@@ -155,13 +184,15 @@ void ofApp::draw()
             sample_to_screen(*var, sample, next_xy);
             ofDrawLine(last_xy, next_xy);
             last_xy = next_xy;
+
+            ++it;
         }
     }
 }
 
 /**
  * Transform sample point (t, v) to screen coordinates.
- * 
+ *
  * @param   point
  *          ofPoint that will contain transformed coordinates
  */
@@ -199,7 +230,7 @@ int ofApp::_setup_socket(string protocol, string host, unsigned int port) {
     // However, an empty filter value with length argument zero subscribes to all messages
     subscriber.setsockopt(ZMQ_SUBSCRIBE, NULL, 0);
 
-    
+
     return 0;
 }
 
@@ -214,7 +245,7 @@ int ofApp::_setup_socket(string protocol, string host, unsigned int port) {
 
 /**
  * Handle MIDI messages (required by ofxMidiListener interface).
- * 
+ *
  * @effect  Save the midi message in member variable 'midiMessage'
  *          for later use.
  */
