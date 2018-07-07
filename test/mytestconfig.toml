@@ -4,7 +4,7 @@ file = "my-morphology.swc"
 [connection]
 protocol = "tcp"
 host = "localhost"
-port = "8090"
+port = 5557
 
 [midi]
 # specify either a port number or name
@@ -12,13 +12,13 @@ portnumber = 0
 portname = "myport"
 
 [[variable]]
-id = 1.0
+id = 1
 name = "Vsoma"
 
 [[variable]]
-id = 2.0
+id = 2
 name = "Vdend"
 
 [[variable]]
-id = 3.0
+id = 3
 name = "cai_dend" # internal Calcium concentration [Ca]_i

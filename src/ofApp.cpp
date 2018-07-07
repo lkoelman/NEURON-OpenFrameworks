@@ -61,6 +61,10 @@ void ofApp::setup()
 
 	// =========================================================================
     // Create graphed variables
+    DBGMSG(std::cerr, "Creating graphed variables...");
+
+    int window_width = ofGetWindowWidth();
+    int last_y_offset = 0.1 * ofGetWindowHeight();
 
     auto var_descriptions = config->get_table_array("variable");
 
@@ -72,13 +76,24 @@ void ofApp::setup()
 
         if (!(p_varname && p_varid)) {
             std::cout << "Each variable description must contain at least "
-                      << "a name and identifier number.";
+                      << "a name and identifier number." << std::endl;
             continue;
         }
 
-        variables[*p_varid] = std::make_shared<GraphedVariable>(
+        auto variable = std::make_shared<GraphedVariable>(
                                         *p_varid, *p_varname);
+
+        // Position of graphed variable on screen
+        variable->x_width_max = 0.8 * window_width;
+        variable->ax_origin = ofPoint(0.1 * window_width, 
+                                      last_y_offset + variable->y_height_max());
+        variables[*p_varid] = variable;
+
+        last_y_offset += variable->y_height_max();
+        DBGMSG(std::cerr, "Listening for var: " << *p_varname);
     }
+
+    DBGMSG(std::cerr, "ofApp setup done!");
 }
 
 
@@ -117,8 +132,12 @@ void ofApp::update()
     void* data_addr = update.data();
     sample_t* sample;
 
+    DBGMSG(std::cerr, "Received message of size " << msg_size);
+
     size_t bytes_processed = 0;
     unsigned int i_msg = 0;
+    bool debug_var_encountered = false;
+    
     while (bytes_processed < msg_size) {
         // memcpy(&sample, data_addr + (i_msg * sample_size), sample_size);
         sample = (sample_t*) data_addr + (i_msg * sample_size);
@@ -130,28 +149,33 @@ void ofApp::update()
         if (this->variables.count(gid) > 0) {
             this->variables[gid]->samples->push_back(ofPoint(sample->t, sample->v));
         }
+
+        // One debug statement per message received
+        if (sample->gid == 1.0 && !debug_var_encountered) {
+            DBGMSG(std::cerr, "Received (gid, t, v): " 
+                                << sample->gid << ", "
+                                << sample->t << ", " 
+                                << sample->v << std::endl);
+            debug_var_encountered = true;
+        }
     }
 
-    // Method B using streams
-    // double t, v, gid;
-    // std::istringstream iss(static_cast<char*>(update.data()));
+    // Iterate over all variables and forget all samples that are outside of
+    // plotting range. ese are samples where (t_last - t) * x_per_t > x_width
+    for (auto const& id_and_var: variables)
+    {
+        auto variable = id_and_var.second;
+        double t_last = variable->samples->front().x;
+        while (true) {
+            const ofPoint& pt = variable->samples->front();
+            if ((t_last - pt.x) * variable->x_per_t > variable->x_width_max) {
+                variable->samples->pop_front();
+            } else {
+                break;
+            }
+        }
 
-    // Read stream of samples and append to variable sampled if it is being graphed
-    // NOTE: This is parsing strings to floats, if so find a
-    //       float-stream object to use instead
-    // while (iss) {
-    //     iss >> gid >> t >> v;
-    //     unsigned int iid = (unsigned int) gid;
-    //     // Look up the variable in map by identifier and append sample
-    //     if (this->variables.count(iid) > 0) {
-    //         this->variables[iid]->samples->push_back(ofPoint(t, v));
-    //     }
-    // }
-    std::cout << "Received (gid, t, v): " 
-              << sample->gid << ", "
-              << sample->t << ", " << sample->v;
-
-    // TODO: Pop values that are outside of the variable's plotting range
+    }
 }
 
 
@@ -175,7 +199,7 @@ void ofApp::draw()
         ofPoint last_xy;
         sample_to_screen(*var, last_pt, last_xy);
 
-        auto it = ++var->samples->begin();
+        auto it = ++var->samples->begin(); // second point
         while (it != var->samples->end())
         {
             // Map sample point to screen position based on axes origin
@@ -222,7 +246,7 @@ int ofApp::_setup_socket(string protocol, string host, unsigned int port) {
 
     std::ostringstream addr_buffer;
     addr_buffer << protocol << "://" << host << ":" << port;
-    string addr = addr_buffer.str();
+    std::string addr = addr_buffer.str();
     std::cout << "\n[NeuroControl] Connecting to address " << addr << "\n";
     subscriber.connect(addr);
 
@@ -230,7 +254,7 @@ int ofApp::_setup_socket(string protocol, string host, unsigned int port) {
     // However, an empty filter value with length argument zero subscribes to all messages
     subscriber.setsockopt(ZMQ_SUBSCRIBE, NULL, 0);
 
-
+    DBGMSG(std::cerr, "Listening for samples on: " << addr << std::endl);
     return 0;
 }
 

@@ -38,6 +38,8 @@ sudo apt install qjackctl
 
 If you don't have a hardware MIDI controller you can install a software MIDI device.
 
+--------------------------------------------------------------------------------
+
 # Usage
 
 ## OpenFrameworks
@@ -46,6 +48,16 @@ To get started with the OpenFrameworks examples see the included [`docs` folder]
 in the root directory.
 
 ## Neuron MIDI Control
+
+To run the example, first start a NEURON simulation that publishes variable
+samples to a ZMQ socket:
+
+```sh
+python test_observe_vars.py
+```
+
+Then start the NeuroConductor app to listen to the sample stream and
+plot it using OpenFrameworks:
 
 ```sh
 ./bin/NeuronMIDIApp -c myconfig.toml
