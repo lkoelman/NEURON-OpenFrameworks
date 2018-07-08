@@ -1,0 +1,23 @@
+;; use nil instead of c++-mode so it also works in c-mode (.h files)
+((nil
+   (flycheck-clang-language-standard . "c++11")
+   (flycheck-gcc-language-standard . "c++11")
+   (eval . (set (make-local-variable 'my-include-paths)
+                (list
+                 (expand-file-name "src" (projectile-project-root))
+                 (expand-file-name "3rdparty/include" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/app" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/communication" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/events" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/gl" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/graphics" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/math" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/sound" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/types" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/utils" (projectile-project-root))
+                 (expand-file-name "../../../libs/openFrameworks/video" (projectile-project-root)))))
+   (eval . (setq-local flycheck-clang-include-path my-include-paths))
+   (eval . (setq-local company-clang-arguments
+                       (mapcar (lambda (inc-path) (concat "-I" inc-path))
+                               my-include-paths)))))
