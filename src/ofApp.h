@@ -1,3 +1,4 @@
+// -*- mode: c++ -*-
 #pragma once
 
 #include "ofMain.h"
@@ -25,7 +26,7 @@ class ofApp : public ofBaseApp, public ofxMidiListener
 {
 
   public:
-    ofApp(std::string config_path) : 
+    ofApp(std::string config_path) :
         config_file(config_path),
         LOG_PREFIX("\n[NeuroControl]: ") {}
 
@@ -88,7 +89,7 @@ typedef struct {
 } sample_t;
 
 
-// A graphed variable. 
+// A graphed variable.
 // Its responsibilities are data storage for the incoming signal samples
 // and storing plotting options.
 // The signal samples are contained in GraphedVar.samples.
@@ -105,13 +106,19 @@ class GraphedVariable
         y_per_v(1.0),
         x_per_t(0.5),
         x_width_max(500.0),
+        scroll_speed(1.0),
+        tau_scroll(50.0),
+        update_speed(1.0),
         v_lim_upper(40.0),
         v_lim_lower(-80.0),
-        t_lim_lower(0.0)
+        t_lim_lower(0.0),
+        tmax_last_update(0.0)
     {
         // samples = new std::deque<ofPoint>({ofPoint(0.0)});
         samples = std::unique_ptr<std::deque<ofPoint>>(
                  new std::deque<ofPoint>({ofPoint(0.0, 0.0)}));
+
+        tsys_last_update = ofGetElapsedTimeMillis();
     }
 
     int y_height_max() const {
@@ -132,11 +139,18 @@ class GraphedVariable
     float y_height;
     float y_per_v;
     float x_per_t;
-
     float x_width_max; // max pixel width of all graphs showing t
+    float scroll_speed; // in units [sim_time / real_time]
+                        // Desired scroll speed.
+    float tau_scroll;   // How fast scroll speed tracks update speed.
+    float update_speed; // in units [sim_time / real_time]
+                        // constantly changing: how fast samples are being received
 
     // Limits of graphed value
     float v_lim_upper;
     float v_lim_lower;
-    float t_lim_lower; // constantly updated
+
+    float t_lim_lower; // constantly updated, determines apparent scroll speed
+    float tmax_last_update; // [ms] time of most recent sample in last update
+    uint64_t tsys_last_update; // [ms] system time of last update
 };

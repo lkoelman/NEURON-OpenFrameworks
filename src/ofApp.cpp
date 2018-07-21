@@ -5,7 +5,6 @@
 
 void ofApp::setup()
 {
-    // TODO: setup my app, see examples folder
     ofSetWindowTitle("Neuron MIDI Control");
 
     // Parse TOML config file
@@ -81,12 +80,14 @@ void ofApp::setup()
         }
 
         auto variable = std::make_shared<GraphedVariable>(
-                                        *p_varid, *p_varname);
+                                                          *p_varid, *p_varname);
 
         // Position of graphed variable on screen
         variable->x_width_max = 0.8 * window_width;
-        variable->ax_origin = ofPoint(0.1 * window_width, 
+        variable->ax_origin = ofPoint(0.1 * window_width,
                                       last_y_offset + variable->y_height_max());
+
+        // Store in map<gid, variable>
         variables[*p_varid] = variable;
 
         last_y_offset += variable->y_height_max();
@@ -125,8 +126,6 @@ void ofApp::update()
     // Parse data into workable types
     // See NEURON-sockets/ZmqOutputVars.mod: we got sequence of triples
     // (float, float, float) all concatenated into arbitrary size message.
-
-    // Method A using memcpy:
     size_t sample_size = sizeof(sample_t);
     size_t msg_size = update.size();
     void* data_addr = update.data();
@@ -137,7 +136,7 @@ void ofApp::update()
     size_t bytes_processed = 0;
     unsigned int i_msg = 0;
     bool debug_var_encountered = false;
-    
+
     while (bytes_processed < msg_size) {
         // memcpy(&sample, data_addr + (i_msg * sample_size), sample_size);
         sample = (sample_t*) data_addr + (i_msg * sample_size);
@@ -152,29 +151,37 @@ void ofApp::update()
 
         // One debug statement per message received
         if (sample->gid == 1.0 && !debug_var_encountered) {
-            DBGMSG(std::cerr, "Received (gid, t, v): " 
-                                << sample->gid << ", "
-                                << sample->t << ", " 
-                                << sample->v << std::endl);
+            DBGMSG(std::cerr, "Received (gid, t, v): "
+                   << sample->gid << ", "
+                   << sample->t << ", "
+                   << sample->v << std::endl);
             debug_var_encountered = true;
         }
     }
 
-    // Iterate over all variables and forget all samples that are outside of
-    // plotting range. ese are samples where (t_last - t) * x_per_t > x_width
+    // Forget all samples that are outside of plotting range.
+    // I.e. samples where (t_newest - t) * x_per_t > x_width
     for (auto const& id_and_var: variables)
     {
         auto variable = id_and_var.second;
-        double t_last = variable->samples->front().x;
+        float t_newest = variable->samples->back().x;
+        float t_oldest = variable->samples->front().x;
         while (true) {
-            const ofPoint& pt = variable->samples->front();
-            if ((t_last - pt.x) * variable->x_per_t > variable->x_width_max) {
-                variable->samples->pop_front();
+            if ((t_newest - t_oldest) * variable->x_per_t > variable->x_width_max) {
+                variable->samples->pop_front(); // forget point
+                t_oldest = variable->samples->front().x; // get new oldest point
+                variable->t_lim_lower = t_oldest;
             } else {
                 break;
             }
         }
 
+        // Calculate arrival rate of samples
+        uint64_t t_elapsed = ofGetElapsedTimeMillis();
+        float dt_var_update = (float) t_elapsed - variable->tsys_last_update;
+        variable->update_speed = (t_newest - variable->tmax_last_update) / dt_var_update;
+        variable->tmax_last_update = t_newest;
+        variable->tsys_last_update = t_elapsed;
     }
 }
 
@@ -187,12 +194,23 @@ void ofApp::update()
  */
 void ofApp::draw()
 {
-    //TODO: implement App::draw() method,
+    //TODO: match scroll speed to rate that new samples arrive
+    // - with current t_lim_lower update by pop() => jittery scrolling
+    // - instead: set constant scroll speed and match it to rate of arriving samples
 
     // Draw all our graphed lines
     for (auto const& id_and_var: variables)
     {
         auto var = id_and_var.second;
+
+        // Scroll speed must track update speed (arrival rate) but as low-pass filter
+        float draw_time = ofGetLastFrameTime() * 1e-3; // [ms] time elapsed since last frame drawn
+        float d_scroll_speed = (var->update_speed - var->scroll_speed) / var->tau_scroll; // d(speed)/d(system time)
+        var->scroll_speed += (d_scroll_speed * draw_time);
+
+        // Update lower cutoff time based on scroll speed
+        // [sys_time] * [sim_time / sys_time] * [pixels / sim_time]
+        var->t_lim_lower += draw_time * var->scroll_speed * var->x_per_t;
 
         // Draw all the line segments of remaining points
         const ofPoint& last_pt = var->samples->front();
@@ -215,12 +233,17 @@ void ofApp::draw()
 }
 
 /**
- * Transform sample point (t, v) to screen coordinates.
+ * Transform sample point (t, v) to screen coordinates based on
+ * drawing-related properties of GraphedVariable.
+ *
+ * @param   var
+ *          GraphedVariable to which the sample point belongs
  *
  * @param   point
  *          ofPoint that will contain transformed coordinates
  */
-void ofApp::sample_to_screen(const GraphedVariable &var, const ofPoint &sample,
+void ofApp::sample_to_screen(const GraphedVariable &var,
+                             const ofPoint &sample,
                              ofPoint &point)
 {
     float x = var.ax_origin.x + (sample.x - var.t_lim_lower) * var.x_per_t;
@@ -265,7 +288,7 @@ int ofApp::_setup_socket(string protocol, string host, unsigned int port) {
 // }
 
 //==============================================================================
-// MIDI Inteface
+// MIDI Interface
 
 /**
  * Handle MIDI messages (required by ofxMidiListener interface).
